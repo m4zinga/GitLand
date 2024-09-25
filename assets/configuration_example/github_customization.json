@@ -1,0 +1,16 @@
+{
+    "profile":{
+       "background_image":"LINK_TO_A_RAW_IMAGE_OR_GIF",
+       "style":"LINK_TO_A_RAW_STYLE_CONFIGURATION"
+    },
+    "repo":{
+       "m4zingatesting_repo1":{
+          "background_image":"LINK_TO_A_RAW_IMAGE_OR_GIF",
+          "style":"LINK_TO_A_RAW_STYLE_CONFIGURATION"
+       },
+       "background_profile":{
+          "background_image":"LINK_TO_A_RAW_IMAGE_OR_GIF",
+          "style":"LINK_TO_A_RAW_STYLE_CONFIGURATION"
+       }
+    }
+ }

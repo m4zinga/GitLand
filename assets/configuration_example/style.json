@@ -1,0 +1,14 @@
+{
+    "color": {
+      "--bgColor-default": "YOUR_RGBA_COLOR",
+      "--borderColor-default": "YOUR_RGBA_COLOR",
+      "--bgColor-overlay": "YOUR_RGBA_COLOR",
+      "--bgColor-inset": "YOUR_RGBA_COLOR",
+      "--bgColor-header": "YOUR_RGBA_COLOR",
+      "--bgColor-muted": "YOUR_RGBA_COLOR",
+      "--borderColor-muted": "YOUR_RGBA_COLOR",
+      "--button-default-bgColor-rest": "YOUR_RGBA_COLOR",
+      "--button-default-borderColor-rest": "YOUR_RGBA_COLOR",
+      "--control-borderColor-rest": "YOUR_RGBA_COLOR"
+    }
+  }

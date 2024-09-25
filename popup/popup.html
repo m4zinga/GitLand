@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extension Popup</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+</head>
+<body>
+  <div class="container">
+    <div class="priority-div">
+      <span>Change Config Priority:</span>
+      <div >
+        <!-- <button class="priority-button" data-button-type="priority-button" data-priority-name="local">Local</button> -->
+        <button class="priority-button" data-button-type="priority-button" data-priority-name="personal">Personal</button>
+        <button class="priority-button" data-button-type="priority-button" data-priority-name="internet">Internet</button>
+      </div>
+      <div>
+        
+      <button class="priority-button confirm" id="save-settings">Save Priorities</button>
+      </div>
+    </div>
+    <hr>
+    <div class="color-change-div">
+      <span>Change UI color:</span>
+      <div>
+        <select class="item-change-select" id="css-value">
+        </select>
+      </div>
+      <div class="color-picker-container">
+        <input type="color" id="color-picker" value="#ff0000">
+        <input type="range" id="opacity-range" class="opacity-slider" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="end-div"></div>
+      <button class="priority-button download" id="download-settings">Download Color Json</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

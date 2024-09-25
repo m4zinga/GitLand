@@ -1,0 +1,113 @@
+body {
+  background-color: #F2F2F7;
+  min-width: 210px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  text-align: center;
+}
+
+.container {
+  width: 100%;
+}
+
+.priority-div {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.priority-div div{
+  margin-top:5px;
+  display: flex;
+  flex-direction: row;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.priority-button {
+  position: relative;
+  background-color: #E4E4E6;
+  border-radius: 3px;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #007AFF;
+  font-weight: bold;
+}
+
+.priority-div .priority-button{
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.priority-button:hover {
+  background-color: #DCDCDD;
+}
+
+.priority-order-span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: #FF3B30;
+  color: white;
+  text-align: center;
+  line-height: 0.8rem;
+  border-radius: 50%;
+  font-weight: bold;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.confirm{
+  color: #34C759;
+}
+.download{
+  color: #007AFF;
+}
+
+.end-div{
+  margin-top: 10px;
+  text-align: end;
+}
+
+.color-change-div{
+  display: flex;
+  flex-direction: column;
+  margin-top:5px;
+}
+
+.item-change-select{
+  max-width: 100%;
+  background-color: #E4E4E6;
+  border-radius: 3px;
+  border: none;
+  outline: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #007AFF;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-change-select:hover {
+  background-color: #DCDCDD;
+}
+
+.color-picker-div{
+  margin-top: 5px;
+  display: flex;
+  flex-direction: row;
+}
+
+.color-picker-container {
+  margin-top:5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opacity-slider {
+  width: 150px;
+}
