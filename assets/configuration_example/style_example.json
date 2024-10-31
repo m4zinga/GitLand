@@ -9,6 +9,18 @@
     "--borderColor-muted": "rgba(0, 157, 255, 1)",
     "--button-default-bgColor-rest": "rgba(0, 0, 0, 0.5)",
     "--button-default-borderColor-rest": "rgba(0, 255, 204, 1)",
-    "--control-borderColor-rest": "rgb(0, 255, 21)"
+    "--control-borderColor-rest": "rgb(0, 255, 21)",
+    "--color-calendar-halloween-graph-day-L1-bg": "rgba(99, 28, 3, 1)",
+    "--color-calendar-halloween-graph-day-L2-bg": "rgba(189, 86, 29, 1)",
+    "--color-calendar-halloween-graph-day-L3-bg": "rgba(250, 122, 24, 1)",
+    "--color-calendar-halloween-graph-day-L4-bg": "rgba(253, 223, 104, 1)",
+    "--color-calendar-winter-graph-day-L1-bg": "rgba(10, 48, 105, 1)",
+    "--color-calendar-winter-graph-day-L2-bg": "rgba(9, 105, 218, 1)",
+    "--color-calendar-winter-graph-day-L3-bg": "rgba(84, 174, 255, 1)",
+    "--color-calendar-winter-graph-day-L4-bg": "rgba(182, 227, 255, 1)",
+    "--color-calendar-graph-day-L1-bg": "rgba(14, 68, 41, 1)",
+    "--color-calendar-graph-day-L2-bg": "rgba(0, 109, 50, 1)",
+    "--color-calendar-graph-day-L3-bg": "rgba(38, 166, 65, 1)",
+    "--color-calendar-graph-day-L4-bg": "rgba(57, 211, 83, 1)"
   }
 }

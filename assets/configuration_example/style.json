@@ -9,6 +9,18 @@
       "--borderColor-muted": "YOUR_RGBA_COLOR",
       "--button-default-bgColor-rest": "YOUR_RGBA_COLOR",
       "--button-default-borderColor-rest": "YOUR_RGBA_COLOR",
-      "--control-borderColor-rest": "YOUR_RGBA_COLOR"
+      "--control-borderColor-rest": "YOUR_RGBA_COLOR",
+      "--color-calendar-halloween-graph-day-L1-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-halloween-graph-day-L2-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-halloween-graph-day-L3-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-halloween-graph-day-L4-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-winter-graph-day-L1-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-winter-graph-day-L2-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-winter-graph-day-L3-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-winter-graph-day-L4-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-graph-day-L1-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-graph-day-L2-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-graph-day-L3-bg": "YOUR_RGBA_COLOR",
+      "--color-calendar-graph-day-L4-bg": "YOUR_RGBA_COLOR"
     }
   }
