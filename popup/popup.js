@@ -1,206 +1,327 @@
-var priorities = [];
-var defaultColorConfiguration = {
-  "--bgColor-overlay": "",
-  "--bgColor-default": "",
-  "--bgColor-inset": "",
-  "--bgColor-header": "",
-  "--borderColor-default": "",
-  "--bgColor-muted": "",
-  "--borderColor-muted": "",
-  "--button-default-bgColor-rest": "",
-  "--button-default-borderColor-rest": "",
-  "--control-borderColor-rest": ""
-}
+'use strict';
 
-/**
- * This function is responsible for retrieving the configuration.
- * It retrieves the saved search property order and applies the settings based on the configured priority,
- * ensuring the correct configuration is loaded.
- */
-function getJSONFromStorage(dataName) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([dataName], (result) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result[dataName]);
-      }
+const DEFAULT_PRIORITIES = ['internet', 'personal'];
+
+/** Variables the popup always offers, grouped; keys found in the loaded style are added too. */
+const KNOWN_VARS = {
+  'Page': ['--bgColor-overlay', '--bgColor-header'],
+  'Surfaces': ['--bgColor-default', '--bgColor-muted', '--bgColor-inset'],
+  'Borders': ['--borderColor-default', '--borderColor-muted', '--control-borderColor-rest'],
+  'Buttons': ['--button-default-bgColor-rest', '--button-default-borderColor-rest'],
+  'Contribution graph': [
+    '--color-calendar-graph-day-L1-bg', '--color-calendar-graph-day-L2-bg',
+    '--color-calendar-graph-day-L3-bg', '--color-calendar-graph-day-L4-bg',
+    '--color-calendar-halloween-graph-day-L1-bg', '--color-calendar-halloween-graph-day-L2-bg',
+    '--color-calendar-halloween-graph-day-L3-bg', '--color-calendar-halloween-graph-day-L4-bg',
+    '--color-calendar-winter-graph-day-L1-bg', '--color-calendar-winter-graph-day-L2-bg',
+    '--color-calendar-winter-graph-day-L3-bg', '--color-calendar-winter-graph-day-L4-bg'
+  ]
+};
+const ALL_KNOWN = Object.values(KNOWN_VARS).flat();
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  status: $('status'),
+  statusText: $('status-text'),
+  reload: $('reload-config'),
+  sources: [...document.querySelectorAll('.source')],
+  colorsCard: $('colors-card'),
+  unavailable: $('colors-unavailable'),
+  select: $('css-var'),
+  picker: $('color-picker'),
+  swatch: $('swatch-fill'),
+  hex: $('hex-input'),
+  alpha: $('alpha-range'),
+  alphaValue: $('alpha-value'),
+  editedCount: $('edited-count'),
+  reset: $('reset-edits'),
+  copy: $('copy-json'),
+  download: $('download-json'),
+  warnings: $('warnings'),
+  toast: $('toast')
+};
+
+let priorities = [...DEFAULT_PRIORITIES];
+let tabId = null;
+let page = null;          // state returned by the content script
+const values = {};        // current value of every variable (set or computed)
+
+/* ------------------------------------------------------------------ helpers */
+
+function sendToTab(message) {
+  return new Promise((resolve) => {
+    if (tabId === null) return resolve(undefined);
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      // lastError = no content script on this tab (not GitHub, or opened before install).
+      resolve(chrome.runtime.lastError ? undefined : response);
     });
   });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  /**
-   * This function is triggered when the popup is opened.
-   * It retrieves the user's preferred configuration order and adjusts both the visual and logical order of the buttons
-   * accordingly, ensuring the interface reflects the saved preferences.
-   */
-  chrome.storage.local.get(["priorities"], (result) => {
-    if (chrome.runtime.lastError) {
-      reject(chrome.runtime.lastError);
-    } else {
-      if (Object.keys(result).length !== 0) {
-        priorities = result["priorities"];
-      }
-      for (const element of priorities) {
-        let btnPriorityOrderId = priorities.indexOf(element) + 1;
-        document.querySelector(`[data-priority-name="${element}"]`).innerHTML += `<span class="priority-order-span" data-id="${btnPriorityOrderId}">${btnPriorityOrderId}</span>`;
-      }
-    }
-  });
-
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    /** This code sends a message to the content script with a command like "give me the list of loaded colors on the page".
-    * Once it receives the pairs of CSS variables and their associated values,
-    * it creates options in the select element and sets the first color in the color picker.
-    */ 
-    chrome.tabs.sendMessage(tabs[0].id, { "get": "styleJson" }, (response) => {
-      if (Object.keys(response || {}).length !== 0) {
-        defaultColorConfiguration = response;
-      }
-
-      const selectElement = document.getElementById('css-value');
-
-      for (const [key, value] of Object.entries(defaultColorConfiguration)) {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = key;
-        selectElement.appendChild(option);
-      }
-
-      const rgba = Object.values(defaultColorConfiguration)[0];
-      const {hexColor, opacity} = rgbaToHexOpac(rgba);
-      colorPicker.value = hexColor;
-      opacityRange.value = opacity * 100;
-    });
-  });
-});
-
-/**
- * This function is executed when a button is clicked to select or remove a configuration search priority.
- * It checks whether the preference is already present in the priority list:
- * - If the preference is absent, it adds it to the list.
- * - If the preference is already present (i.e., the button was clicked for an existing priority),
- *   it removes the preference from the list, effectively toggling the selection.
- */
-document.querySelectorAll('[data-button-type="priority-button"]').forEach(function (priorityButton) {
-  priorityButton.addEventListener('click', function (e) {
-    let idxPriority = priorities.indexOf(priorityButton.dataset.priorityName);
-    if (idxPriority === -1) {
-      priorities.push(priorityButton.dataset.priorityName);
-      priorityButton.innerHTML += `<span class="priority-order-span" data-id="${priorities.length}">${priorities.length}</span>`;
-    } else {
-      let btnPriorityOrderId = idxPriority + 1;
-      priorities.splice(idxPriority, 1);
-      document.querySelector(`[data-id="${btnPriorityOrderId}"]`).remove();
-
-      /**
-       * Instead of looping for all priority-order(<span>), it can loop over the priority-order-id greater then the clicked one
-       */
-      /**
-       * This code adjusts the order of priorities after a preference has been removed.
-       * It ensures that all subsequent priorities are shifted down by one position.
-       * For example, if the current order is 1-2-3 and preference 2 is removed,
-       * priority 1 remains 1, priority 2 is removed, and priority 3 is updated to become the new priority 2.
-       */
-      document.querySelectorAll('.priority-order-span').forEach(function (priorityOrder) {
-        if (priorityOrder.dataset.id > btnPriorityOrderId) {
-          priorityOrder.dataset.id -= 1;
-          priorityOrder.innerHTML = priorityOrder.dataset.id;
-        }
-      });
-    }
-
-  });
-});
-
-/**
- * This function saves the priority order preference for configuration searches locally.
- * It updates the local storage with the current order of preferences, ensuring that the user's settings
- * are preserved and can be retrieved for future use.
- */
-document.getElementById("save-settings").addEventListener("click", (e) => {
-  chrome.storage.local.set({ "priorities": priorities }, function () {
-  });
-});
-
-document.getElementById("download-settings").addEventListener("click", (e) => {
-  // Convert the JavaScript object to a JSON string
-  const jsonStr = JSON.stringify({"color" : defaultColorConfiguration}, null, 2);
-
-  // Create a Blob object from the JSON string
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-
-  // Create a link element
-  const link = document.createElement('a');
-
-  // Create an object URL for the Blob and set it as the href attribute
-  link.href = URL.createObjectURL(blob);
-
-  // Set the download attribute with the desired file name
-  link.download = "style.json";
-
-  // Append the link to the document body
-  document.body.appendChild(link);
-
-  // Trigger the click event to download the file
-  link.click();
-
-  // Remove the link from the document
-  document.body.removeChild(link);
-});
-
-
-const colorPicker = document.getElementById('color-picker');
-const opacityRange = document.getElementById('opacity-range');
-
-/**
- * This function sets the color picker based on the selected CSS variable.
- * It retrieves the value of the selected CSS variable, updates the color picker with this value,
- * and allows the user to pick a new color for that CSS variable.
- */
-document.getElementById('css-value').addEventListener('change', function() {
-  const rgba = defaultColorConfiguration[this.value];
-  const {hexColor, opacity} = rgbaToHexOpac(rgba);
-  colorPicker.value = hexColor;
-  opacityRange.value = opacity * 100;
-});
-
-function updatePreview() {
-  const color = colorPicker.value;
-  const opacity = opacityRange.value / 100;
-  const cssVal = document.getElementById("css-value").value;
-
-  defaultColorConfiguration[cssVal] = hexToRgba(color, opacity);
-
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { "rgba": { [cssVal]: hexToRgba(color, opacity) } }, (response) => { });
-  });
+let toastTimer = 0;
+function toast(text) {
+  els.toast.textContent = text;
+  els.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => els.toast.classList.remove('show'), 1600);
 }
 
-function hexToRgba(hex, alpha) {
-  let r = parseInt(hex.slice(1, 3), 16);
-  let g = parseInt(hex.slice(3, 5), 16);
-  let b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+function setStatus(state, text) {
+  els.status.dataset.state = state;
+  els.statusText.textContent = text;
+  els.status.title = text;
 }
 
-function rgbaToHexOpac(rgba){
-  const rgbaPattern = /^rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*(\d*\.?\d+)?\)$/;
-  const result = rgba.match(rgbaPattern);
-  if (!result) {
-    return {hexColor: "#000000", opacity: 0}
+/* -------------------------------------------------------------------- color */
+
+const ctx = document.createElement('canvas').getContext('2d');
+
+/** Parses any CSS color (hex, #rrggbbaa, rgb[a], hsl, named…) into {r, g, b, a}. */
+function parseColor(str) {
+  if (!str || !CSS.supports('color', str)) return null;
+  ctx.fillStyle = '#000';
+  ctx.fillStyle = str;
+  const v = ctx.fillStyle; // "#rrggbb" or "rgba(r, g, b, a)"
+  if (v[0] === '#') {
+    return { r: parseInt(v.slice(1, 3), 16), g: parseInt(v.slice(3, 5), 16), b: parseInt(v.slice(5, 7), 16), a: 1 };
   }
-  
-  const r = parseInt(result[1], 10);
-  const g = parseInt(result[2], 10);
-  const b = parseInt(result[3], 10);
-  const a = result[4] !== undefined ? parseFloat(result[4]) : 1;
-
-  // Convert each r, g, b component to a 2-digit hex string
-  const hexColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-  return {hexColor: hexColor, opacity: a}
+  const m = v.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+  return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null;
 }
 
-colorPicker.addEventListener('input', updatePreview);
-opacityRange.addEventListener('input', updatePreview);
+const toHex = ({ r, g, b }) => '#' + [r, g, b].map((n) => Math.round(n).toString(16).padStart(2, '0')).join('');
+const toRgba = ({ r, g, b, a }) => `rgba(${r}, ${g}, ${b}, ${Math.round(a * 100) / 100})`;
+
+/* --------------------------------------------------------------- priorities */
+
+function renderPriorities() {
+  for (const btn of els.sources) {
+    const idx = priorities.indexOf(btn.dataset.priority);
+    btn.setAttribute('aria-pressed', String(idx !== -1));
+    btn.querySelector('.source-badge').textContent = idx === -1 ? '' : String(idx + 1);
+  }
+}
+
+for (const btn of els.sources) {
+  btn.addEventListener('click', () => {
+    const name = btn.dataset.priority;
+    const idx = priorities.indexOf(name);
+    if (idx === -1) priorities.push(name);
+    else priorities.splice(idx, 1);
+    renderPriorities();
+    // Saved right away; open GitHub tabs pick the change up through storage.onChanged.
+    chrome.storage.local.set({ priorities }, () => {
+      toast('Saved');
+      setTimeout(refreshState, 600);
+    });
+  });
+}
+
+/* ------------------------------------------------------------- color editor */
+
+function editedKeys() {
+  return page ? Object.keys(page.overrides || {}) : [];
+}
+
+/** Variables with an explicit value: from the loaded style.json or edited in the popup. */
+function exportableColors() {
+  return page ? { ...page.colors } : {};
+}
+
+function buildSelect() {
+  const current = els.select.value;
+  const extra = Object.keys(page.colors).filter((k) => !ALL_KNOWN.includes(k));
+  const groups = extra.length ? { ...KNOWN_VARS, 'From your style': extra } : KNOWN_VARS;
+
+  els.select.textContent = '';
+  for (const [label, keys] of Object.entries(groups)) {
+    const group = document.createElement('optgroup');
+    group.label = label;
+    for (const key of keys) {
+      const opt = document.createElement('option');
+      opt.value = key;
+      const marker = key in (page.overrides || {}) ? '● ' : key in page.colors ? '○ ' : '';
+      opt.textContent = marker + key;
+      group.appendChild(opt);
+    }
+    els.select.appendChild(group);
+  }
+  const firstSet = Object.keys(page.colors)[0];
+  els.select.value = current || firstSet || ALL_KNOWN[0];
+}
+
+function showValue(key) {
+  const color = parseColor(values[key]) || { r: 14, g: 26, b: 51, a: 1 };
+  const hex = toHex(color);
+  els.picker.value = hex;
+  els.hex.value = hex.toUpperCase();
+  els.hex.removeAttribute('aria-invalid');
+  els.alpha.value = Math.round(color.a * 100);
+  paintPreview(color);
+}
+
+function paintPreview(color) {
+  els.swatch.style.background = toRgba(color);
+  els.alpha.style.setProperty('--c', toHex(color));
+  els.alphaValue.textContent = `${Math.round(color.a * 100)}%`;
+}
+
+function updateEditedCount() {
+  const n = editedKeys().length;
+  els.editedCount.hidden = n === 0;
+  els.editedCount.textContent = `${n} edited`;
+}
+
+let pending = null;
+function applyColor(color) {
+  const key = els.select.value;
+  const value = toRgba(color);
+  values[key] = value;
+  page.colors[key] = value;
+  page.overrides[key] = value;
+  paintPreview(color);
+  updateEditedCount();
+  // Coalesce rapid slider/picker input into one message per frame.
+  const first = !pending;
+  pending = { key, value };
+  if (first) {
+    requestAnimationFrame(() => {
+      sendToTab({ type: 'gitland:setColor', key: pending.key, value: pending.value });
+      const opt = els.select.selectedOptions[0];
+      if (opt) opt.textContent = '● ' + pending.key;
+      pending = null;
+    });
+  }
+}
+
+const currentAlpha = () => els.alpha.value / 100;
+
+els.select.addEventListener('change', () => showValue(els.select.value));
+
+els.picker.addEventListener('input', () => {
+  const c = parseColor(els.picker.value);
+  els.hex.value = els.picker.value.toUpperCase();
+  els.hex.removeAttribute('aria-invalid');
+  applyColor({ ...c, a: currentAlpha() });
+});
+
+els.hex.addEventListener('input', () => {
+  let v = els.hex.value.trim();
+  if (v && v[0] !== '#') v = '#' + v;
+  const valid = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v);
+  els.hex.setAttribute('aria-invalid', String(!valid));
+  if (!valid) return;
+  const c = parseColor(v);
+  if (v.length === 9) els.alpha.value = Math.round(c.a * 100);
+  els.picker.value = toHex(c);
+  applyColor({ ...c, a: v.length === 9 ? c.a : currentAlpha() });
+});
+
+els.alpha.addEventListener('input', () => {
+  const c = parseColor(els.picker.value);
+  applyColor({ ...c, a: currentAlpha() });
+});
+
+els.reset.addEventListener('click', async () => {
+  await sendToTab({ type: 'gitland:resetOverrides' });
+  await refreshState();
+  toast('Edits reset');
+});
+
+function styleJson() {
+  return JSON.stringify({ color: exportableColors() }, null, 2);
+}
+
+els.copy.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(styleJson());
+    toast('Copied');
+  } catch {
+    toast('Copy failed');
+  }
+});
+
+els.download.addEventListener('click', () => {
+  const url = URL.createObjectURL(new Blob([styleJson()], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'style.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+els.reload.addEventListener('click', async () => {
+  els.reload.classList.add('spinning');
+  const ok = await sendToTab({ type: 'gitland:reload' });
+  els.reload.classList.remove('spinning');
+  if (ok) {
+    await refreshState();
+    toast('Reloaded');
+  } else {
+    toast('Open a GitHub page');
+  }
+});
+
+/* -------------------------------------------------------------------- state */
+
+function renderWarnings(list) {
+  els.warnings.textContent = '';
+  for (const w of list || []) {
+    const li = document.createElement('li');
+    li.textContent = w;
+    els.warnings.appendChild(li);
+  }
+  els.warnings.hidden = !list || list.length === 0;
+}
+
+function disableColors(reason) {
+  els.colorsCard.classList.add('disabled');
+  els.unavailable.hidden = false;
+  els.unavailable.textContent = reason;
+}
+
+async function refreshState() {
+  const state = await sendToTab({ type: 'gitland:getState', keys: ALL_KNOWN });
+  if (!state) {
+    page = null;
+    if (tabId === null) {
+      setStatus('off', 'Open github.com to use GitLand');
+      disableColors('Open a github.com page to edit its colors live.');
+    } else {
+      setStatus('off', 'Reload this GitHub page to activate GitLand');
+      disableColors('GitLand is not running on this tab yet: reload the page.');
+    }
+    return;
+  }
+
+  page = state;
+  page.overrides = page.overrides || {};
+  els.colorsCard.classList.remove('disabled');
+  els.unavailable.hidden = true;
+
+  if (state.scope === 'internet') setStatus('active', `Showing @${state.configOwner}'s theme`);
+  else if (state.scope === 'personal') setStatus('active', `Your theme (@${state.configOwner})`);
+  else if (!priorities.length) setStatus('off', 'No configuration source enabled');
+  else setStatus('idle', 'No background_profile found here');
+
+  for (const key of ALL_KNOWN) values[key] = state.computed[key] || '';
+  Object.assign(values, state.colors);
+
+  buildSelect();
+  showValue(els.select.value);
+  updateEditedCount();
+  renderWarnings(state.warnings);
+}
+
+/* --------------------------------------------------------------------- init */
+
+chrome.storage.local.get('priorities', (result) => {
+  if (Array.isArray(result.priorities)) priorities = result.priorities;
+  renderPriorities();
+});
+
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  const onGitHub = tab && /^https:\/\/github\.com\//.test(tab.url || tab.pendingUrl || '');
+  tabId = onGitHub ? tab.id : null;
+  refreshState();
+});

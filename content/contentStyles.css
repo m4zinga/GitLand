@@ -1,30 +1,30 @@
-body{
+/*
+ * GitLand page styles. Everything is scoped to classes the content script sets on <html>
+ * only when a customization is active, so GitHub pages without one are left untouched.
+ */
+
+html.gitland-active body {
     background-color: transparent !important;
 }
 
-.AppHeader{
-    background-color: var(--bgColor-header) !important;
-}
-
-#background-div{
+/*
+ * Background image + overlay, painted by a pseudo-element of <html>: it needs no extra DOM
+ * nodes (which Turbo would wipe on navigation) and lives on its own compositor layer, so
+ * scrolling never repaints the image.
+ */
+html.gitland-active::before {
+    content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    background-image: none;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-#overlay-div {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: -1;
-    background-color: var(--bgColor-overlay);
+    pointer-events: none;
+    background:
+        linear-gradient(var(--bgColor-overlay, transparent), var(--bgColor-overlay, transparent)),
+        var(--gitland-bg-image, none) center / cover no-repeat,
+        Canvas;
+    will-change: transform;
+}
+
+html.gitland-has-header .AppHeader {
+    background-color: var(--bgColor-header) !important;
 }

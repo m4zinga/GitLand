@@ -3,40 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Extension Popup</title>
+  <title>GitLand</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-</head>
 <body>
-  <div class="container">
-    <div class="priority-div">
-      <span>Change Config Priority:</span>
-      <div >
-        <!-- <button class="priority-button" data-button-type="priority-button" data-priority-name="local">Local</button> -->
-        <button class="priority-button" data-button-type="priority-button" data-priority-name="personal">Personal</button>
-        <button class="priority-button" data-button-type="priority-button" data-priority-name="internet">Internet</button>
-      </div>
-      <div>
-        
-      <button class="priority-button confirm" id="save-settings">Save Priorities</button>
-      </div>
+  <header class="hero">
+    <img class="hero-logo" src="../assets/icons/icon128.png" alt="" width="44" height="44">
+    <div class="hero-text">
+      <h1>GitLand</h1>
+      <p id="status" class="status" data-state="idle"><span class="status-dot"></span><span id="status-text">Checking this page…</span></p>
     </div>
-    <hr>
-    <div class="color-change-div">
-      <span>Change UI color:</span>
-      <div>
-        <select class="item-change-select" id="css-value">
-        </select>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="source-title">
+      <div class="card-head">
+        <h2 id="source-title">Configuration source</h2>
+        <button type="button" class="icon-btn" id="reload-config" title="Reload configuration (clears cache)" aria-label="Reload configuration">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M12.4 1.6v3h-3"/></svg>
+        </button>
       </div>
-      <div class="color-picker-container">
-        <input type="color" id="color-picker" value="#ff0000">
-        <input type="range" id="opacity-range" class="opacity-slider" min="0" max="100" value="0">
+      <p class="hint">Checked in order, the first one found wins. Click to enable or disable.</p>
+      <div class="sources">
+        <button type="button" class="source" data-priority="internet" aria-pressed="false">
+          <span class="source-badge"></span>
+          <span class="source-text">
+            <strong>Visited account</strong>
+            <small>Public theme of the profile you are viewing</small>
+          </span>
+        </button>
+        <button type="button" class="source" data-priority="personal" aria-pressed="false">
+          <span class="source-badge"></span>
+          <span class="source-text">
+            <strong>My account</strong>
+            <small>Your own theme, also from a private repo</small>
+          </span>
+        </button>
       </div>
-    </div>
-    <div class="end-div"></div>
-      <button class="priority-button download" id="download-settings">Download Color Json</button>
-    </div>
-  </div>
+    </section>
+
+    <section class="card" id="colors-card" aria-labelledby="colors-title">
+      <div class="card-head">
+        <h2 id="colors-title">Live colors</h2>
+        <span class="edited-count" id="edited-count" hidden></span>
+      </div>
+
+      <p class="hint" id="colors-unavailable" hidden></p>
+
+      <div id="colors-editor">
+        <label class="field-label" for="css-var">Variable</label>
+        <div class="select-wrap">
+          <select id="css-var"></select>
+        </div>
+
+        <div class="picker">
+          <label class="swatch" title="Pick a color">
+            <span class="swatch-fill" id="swatch-fill"></span>
+            <input type="color" id="color-picker" value="#0e1a33" aria-label="Color">
+          </label>
+          <input type="text" id="hex-input" class="hex-input" spellcheck="false" maxlength="9" aria-label="Hex color">
+        </div>
+
+        <div class="alpha-row">
+          <label class="field-label" for="alpha-range">Opacity</label>
+          <output id="alpha-value" for="alpha-range">100%</output>
+        </div>
+        <input type="range" id="alpha-range" class="alpha-range" min="0" max="100" value="100">
+
+        <div class="actions">
+          <button type="button" class="btn ghost" id="reset-edits">Reset</button>
+          <button type="button" class="btn ghost" id="copy-json">Copy JSON</button>
+          <button type="button" class="btn primary" id="download-json">Export style.json</button>
+        </div>
+      </div>
+    </section>
+
+    <ul class="warnings" id="warnings" hidden></ul>
+  </main>
+
+  <footer class="foot">
+    <a href="https://github.com/m4zinga/background_profile" target="_blank" rel="noopener">Configuration example ↗</a>
+    <span id="toast" class="toast" role="status" aria-live="polite"></span>
+  </footer>
+
   <script src="popup.js"></script>
 </body>
 </html>
