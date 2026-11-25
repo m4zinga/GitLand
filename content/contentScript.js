@@ -241,12 +241,22 @@
         persistCache();
     }
 
+    /**
+     * GitHub renamed the contribution graph variables: "--color-calendar[-theme]-graph-day-L1-bg"
+     * is now "--contribution-<theme>-bgColor-1". Older style files keep working through this alias.
+     */
+    function modernName(key) {
+        const m = key.match(/^--color-calendar-(?:(halloween|winter)-)?graph-day-L([0-4])-bg$/);
+        return m ? `--contribution-${m[1] || 'default'}-bgColor-${m[2]}` : key;
+    }
+
     function sanitizeColors(input, warnings) {
         const out = {};
         if (!input || typeof input !== 'object') return out;
-        for (const [key, value] of Object.entries(input)) {
+        for (const [rawKey, value] of Object.entries(input)) {
+            const key = modernName(rawKey);
             if (VAR_NAME.test(key) && typeof value === 'string' && value.length < 120 && CSS.supports('color', value)) {
-                out[key] = value.trim();
+                if (key === rawKey || !(key in input)) out[key] = value.trim();
             } else if (value !== '') {
                 warnings.push(`Ignored invalid entry ${key}: ${value}`);
             }

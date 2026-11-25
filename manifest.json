@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GitLand — Custom Backgrounds & Themes for GitHub",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Give your GitHub profile and repos a custom background and colors. Share your theme with every visitor or keep it private.",
   "icons": {
     "16": "assets/icons/icon16.png",

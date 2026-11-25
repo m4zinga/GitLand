@@ -4,18 +4,13 @@ const DEFAULT_PRIORITIES = ['internet', 'personal'];
 
 /** Variables the popup always offers, grouped; keys found in the loaded style are added too. */
 const KNOWN_VARS = {
-  'Page': ['--bgColor-overlay', '--bgColor-header'],
+  'Page': ['--bgColor-overlay', '--bgColor-header', '--header-bgColor'],
+  'Text': ['--fgColor-default', '--fgColor-muted', '--fgColor-accent'],
   'Surfaces': ['--bgColor-default', '--bgColor-muted', '--bgColor-inset'],
   'Borders': ['--borderColor-default', '--borderColor-muted', '--control-borderColor-rest'],
   'Buttons': ['--button-default-bgColor-rest', '--button-default-borderColor-rest'],
-  'Contribution graph': [
-    '--color-calendar-graph-day-L1-bg', '--color-calendar-graph-day-L2-bg',
-    '--color-calendar-graph-day-L3-bg', '--color-calendar-graph-day-L4-bg',
-    '--color-calendar-halloween-graph-day-L1-bg', '--color-calendar-halloween-graph-day-L2-bg',
-    '--color-calendar-halloween-graph-day-L3-bg', '--color-calendar-halloween-graph-day-L4-bg',
-    '--color-calendar-winter-graph-day-L1-bg', '--color-calendar-winter-graph-day-L2-bg',
-    '--color-calendar-winter-graph-day-L3-bg', '--color-calendar-winter-graph-day-L4-bg'
-  ]
+  'Contribution graph': [0, 1, 2, 3, 4].map((n) => `--contribution-default-bgColor-${n}`),
+  'Graph: Halloween & Winter': ['halloween', 'winter'].flatMap((t) => [1, 2, 3, 4].map((n) => `--contribution-${t}-bgColor-${n}`))
 };
 const ALL_KNOWN = Object.values(KNOWN_VARS).flat();
 
