@@ -43,6 +43,9 @@ Example configuration repository: [m4zinga/background_profile](https://github.co
 
 Templates are in [`assets/configuration_example`](assets/configuration_example).
 
+> **Don't want to design your own?** Pick one of the [ready-made themes](themes/README.md)
+> (GitLand Night, Aurora, Synthwave, Sakura, Abyss, Ember) and paste its snippet: no images to upload.
+
 ---
 
 ## How a theme is chosen
@@ -110,8 +113,13 @@ Invalid entries are ignored and reported in the popup.
 | `--borderColor-default`, `--borderColor-muted` | Borders |
 | `--control-borderColor-rest` | Borders of form controls |
 | `--button-default-bgColor-rest`, `--button-default-borderColor-rest` | Default buttons |
-| `--color-calendar-graph-day-L1-bg` … `L4-bg` | Contribution graph levels |
-| `--color-calendar-halloween-…`, `--color-calendar-winter-…` | Seasonal contribution graph themes |
+| `--fgColor-default`, `--fgColor-muted`, `--fgColor-accent` | Text, secondary text and links. Set them so your theme also reads well when GitHub is in light mode. |
+| `--header-bgColor` | GitHub's own header color, also used by a few header details |
+| `--contribution-default-bgColor-0` … `-4` | Contribution graph: empty day (`0`) up to the busiest days (`4`) |
+| `--contribution-halloween-bgColor-1` … `-4`, `--contribution-winter-bgColor-1` … `-4` | Seasonal contribution graph themes |
+
+> Older style files that use `--color-calendar-graph-day-L1-bg` … `L4-bg` (GitHub's previous
+> names) still work: GitLand maps them to the new variables automatically.
 
 The variables not marked *(GitLand)* are GitHub's own
 [Primer](https://primer.style/foundations/primitives/color) variables, so other Primer color
